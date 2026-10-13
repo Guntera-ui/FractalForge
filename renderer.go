@@ -3,44 +3,57 @@ package main
 import "fmt"
 
 func RenderGrid(width, height int, cellAspect float64) {
-	//Something goes here
-	minReal := -2.0
-	maxReal := 1.0
+	//Some questionable code
+	minReal := -3.5
+	maxReal := 1.7
+	maxIter := 1000000
 
 	realStep := StepSize(minReal, maxReal, width)
+	verticalStep := realStep * cellAspect / 2
 
-	verticalStep := realStep * cellAspect
-
-	imagRange := verticalStep * float64(height-1)
-
+	sampleHeight := height * 2
+	imagRange := verticalStep * float64(sampleHeight-1)
 
 	minImag := -imagRange / 2
 	maxImag := imagRange / 2
 
-	for y := 0; y < height; y++{
-		for x := 0; x < width; x++{
-			c := PixelToComplex(
-				x,y,
-				width, height,
-				minReal,maxReal,
-				minImag,maxImag,
-		)
-			iterations := Mandelbrot(c,100)
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
 
-			if iterations <= 9 {
-				PrintColorCell(59,82,139)
-			} else if iterations <= 29 {
-				PrintColorCell(155,101,213)
-			} else if iterations <= 99 {
-				PrintColorCell(233,154,202)
-			} else {
-				PrintColorCell(15,23,42)
-			}
+			topC := PixelToComplex(
+				x, 2*y,
+				width, sampleHeight,
+				minReal, maxReal,
+				minImag, maxImag,
+			)
+
+			bottomC := PixelToComplex(
+				x, 2*y+1,
+				width, sampleHeight,
+				minReal, maxReal,
+				minImag, maxImag,
+			)
+
+			topResult := MandelbrotDetailed(topC, maxIter)
+			bottomResult := MandelbrotDetailed(bottomC, maxIter)
+
+			topColor := ColorFromClassicPalette(topResult)
+			bottomColor := ColorFromClassicPalette(bottomResult)
+
+			PrintHalfBlock(topColor, bottomColor)
 		}
+
 		fmt.Println()
 	}
+
+	fmt.Print("\x1b[0m")
+	//End of miy questionable code
 }
 
-func PrintColorCell(r,g,b int) {
-	fmt.Printf("\x1b[48;2;%d;%d;%dm ", r, g, b)
+func PrintHalfBlock(top, bottom RGB) {
+	fmt.Printf(
+		"\x1b[38;2;%d;%d;%dm\x1b[48;2;%d;%d;%dm▀", //this is chatgpt im not crazy
+		top.R, top.G, top.B,
+		bottom.R, bottom.G, bottom.B,
+	)
 }
