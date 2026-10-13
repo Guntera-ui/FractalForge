@@ -2,11 +2,9 @@ package main
 
 import "fmt"
 
-func RenderGrid(width, height int, cellAspect float64) {
-	//Some questionable code
-	minReal := -3.5
-	maxReal := 1.7
-	maxIter := 1000000
+func RenderGrid(width, height int, cellAspect float64, view Viewport, maxIter int) {
+
+	minReal, maxReal := RealBounds(view.CenterReal, view.Width)
 
 	realStep := StepSize(minReal, maxReal, width)
 	verticalStep := realStep * cellAspect / 2
@@ -14,8 +12,8 @@ func RenderGrid(width, height int, cellAspect float64) {
 	sampleHeight := height * 2
 	imagRange := verticalStep * float64(sampleHeight-1)
 
-	minImag := -imagRange / 2
-	maxImag := imagRange / 2
+	minImag := view.CenterImag - imagRange/2
+	maxImag := view.CenterImag + imagRange/2
 
 	for y := 0; y < height; y++ {
 		for x := 0; x < width; x++ {
@@ -43,11 +41,10 @@ func RenderGrid(width, height int, cellAspect float64) {
 			PrintHalfBlock(topColor, bottomColor)
 		}
 
-		fmt.Println()
+		fmt.Print("\r\n")
 	}
 
 	fmt.Print("\x1b[0m")
-	//End of miy questionable code
 }
 
 func PrintHalfBlock(top, bottom RGB) {
