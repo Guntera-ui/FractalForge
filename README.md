@@ -125,7 +125,7 @@ $$
 FractalForge uses the equivalent squared-magnitude condition:
 
 $$
-\operatorname{Re}(z_n)^2+\operatorname{Im}(z_n)^2>4
+\mathrm{Re}(z_n)^2 + \mathrm{Im}(z_n)^2 > 4
 $$
 
 This avoids unnecessary square-root calculations.
