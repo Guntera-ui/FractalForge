@@ -7,7 +7,7 @@ import (
 	"golang.org/x/term"
 )
 
-func RunInteractive(view Viewport, width, height int, cellAspect float64, maxIter int) error {
+func RunInteractive(view Viewport, width, height int, cellAspect float64, maxIter int, palette Palette) error {
 	fd := int(os.Stdin.Fd())
 
 	if !term.IsTerminal(fd) || !term.IsTerminal(int(os.Stdout.Fd())) {
@@ -28,7 +28,7 @@ func RunInteractive(view Viewport, width, height int, cellAspect float64, maxIte
 	for {
 		fmt.Print("\x1b[H\x1b[2J")
 
-		RenderGrid(width, height, cellAspect, view, maxIter)
+		RenderGrid(width, height, cellAspect, view, maxIter, palette)
 
 		fmt.Print("\r\nWASD: Move | +/-: Zoom | Q: Quit")
 

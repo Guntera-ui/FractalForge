@@ -1,187 +1,161 @@
 # FractalForge
 
-A terminal-based Mandelbrot set renderer written in Go.
+**An interactive Mandelbrot set renderer for the terminal, written in Go.**
+
+FractalForge renders fractals using Unicode half-block characters, 24-bit RGB colors, and smooth escape-time coloring. Built as a lightweight CLI tool for exploring fractal mathematics and customizing the terminal.
 
 ![FractalForge Preview](assets/fractalforge-preview.png)
 
-FractalForge renders the Mandelbrot set directly in your terminal using Unicode half-block characters, 24-bit RGB colors, and smooth escape-time coloring.
-
 ## Features
 
-- Mandelbrot set rendering
+- Interactive zooming and panning
 - Smooth escape-time coloring
-- Classic purple-and-gold color palette
-- Unicode half-block rendering for increased resolution
-- Configurable canvas dimensions and iteration limit
-- Automated tests
-
-## Requirements
-
-- Go
-- A terminal supporting Unicode and true-color (24-bit RGB), such as Kitty
+- 8 built-in color palettes
+- Continuous and cyclic coloring modes
+- 6 Mandelbrot location presets
+- Automatic terminal sizing
+- Configurable coordinates, iterations, and rendering dimensions
+- True-color rendering using Unicode half-block characters
 
 ## Installation
 
-Clone the repository:
+Requires Go and a terminal supporting 24-bit RGB colors.
 
 ```bash
 git clone https://github.com/Guntera-ui/fractalforge.git
 cd fractalforge
+go build -o fractalforge .
+./fractalforge
 ```
 
-Run:
+To install it as a command available anywhere:
 
 ```bash
-go run .
+mkdir -p ~/.local/bin
+go build -o ~/.local/bin/fractalforge .
 ```
 
-For Nix users, the project includes a development shell:
+Ensure `~/.local/bin` is included in your `PATH`.
+
+For Nix users, the repository also provides a development environment:
 
 ```bash
 nix develop
 go run .
 ```
 
-## Configuration
+## Usage
 
-FractalForge currently uses source-code configuration.
-
-### Canvas Size
-
-In `main.go`:
-
-```go
-RenderGrid(360, 85, 2.0)
-```
-
-| Parameter | Description |
-|---|---|
-| `360` | Width in terminal columns |
-| `85` | Height in terminal rows |
-| `2.0` | Character height-to-width ratio for aspect correction |
-
-Check your terminal dimensions before rendering:
+Render the Mandelbrot set:
 
 ```bash
-stty size
+fractalforge
 ```
 
-The output shows rows followed by columns.
+Explore interactively:
 
-### Mandelbrot Settings
-
-In `renderer.go`:
-
-```go
-minReal := -3.5
-maxReal := 1.7
-maxIter := 1000000
+```bash
+fractalforge -interactive
 ```
 
-| Variable | Description |
+Explore Seahorse Valley with the Classic palette:
+
+```bash
+fractalforge -preset seahorse -palette classic -interactive
+```
+
+Try cyclic coloring:
+
+```bash
+fractalforge -palette catppuccin -coloring cyclic -color-period 32
+```
+
+### Interactive Controls
+
+| Key | Action |
 |---|---|
-| `minReal` | Left boundary of the complex-plane viewport |
-| `maxReal` | Right boundary of the complex-plane viewport |
-| `maxIter` | Maximum number of iterations per point |
+| `W` / `S` | Pan up / down |
+| `A` / `D` | Pan left / right |
+| `+` / `-` | Zoom in / out |
+| `Q` or `Ctrl+C` | Quit |
 
-The imaginary-axis boundaries are calculated automatically based on canvas dimensions and aspect ratio.
+### CLI Options
 
-Higher iteration limits can significantly increase rendering time.
+| Flag | Description |
+|---|---|
+| `-interactive` | Enable interactive mode |
+| `-preset` | Select a location preset |
+| `-palette` | Select a color palette |
+| `-coloring` | `continuous` or `cyclic` |
+| `-color-period` | Iterations per color cycle (default: 32) |
+| `-zoom` | Zoom multiplier |
+| `-x`, `-y` | Viewport center coordinates |
+| `-iter` | Maximum iterations (default: 10000) |
+| `-width`, `-height` | Override automatic canvas sizing |
+| `-aspect` | Terminal character aspect ratio |
+| `-list-presets` | Show available presets |
+| `-list-palettes` | Show available palettes |
+| `-help` | Display all CLI options |
 
-### Colors
+### Palettes
 
-The color gradient is defined inside `ColorFromClassicPalette()` in `pallete.go`.
+`classic` · `catppuccin` · `tokyonight` · `gruvbox` · `dracula` · `nord` · `rosepine` · `kanagawa`
 
-Modify the RGB values to customize the palette.
+### Presets
 
-## Mathematics
+`full` · `seahorse` · `elephant` · `triple-spiral` · `minibrot` · `scepter`
 
-### Mandelbrot Set
+### Coloring Modes
 
-The Mandelbrot set is defined by the recurrence relation:
+**Continuous:** Uses aggressive logarithmic color mapping, reaching the final palette color at approximately 128 smooth iterations.
+
+**Cyclic:** Repeats the palette at a configurable interval, smoothly transitioning between its last and first colors.
+
+Both modes retain smooth escape-time calculations.
+
+## How It Works
+
+FractalForge evaluates the Mandelbrot recurrence:
 
 $$
-z_{n+1}=z_n^2+c
+z_{n+1}=z_n^2+c,\qquad z_0=0
 $$
 
-with the initial condition:
-
-$$
-z_0=0
-$$
-
-Here, $c$ is a fixed complex number and $z_n$ represents the value after $n$ iterations.
-
-A point belongs to the Mandelbrot set if its sequence remains bounded indefinitely.
-
-### Escape-Time Algorithm
-
-A sequence is guaranteed to diverge when:
+A point escapes when:
 
 $$
 |z_n|>2
 $$
 
-FractalForge uses the equivalent squared-magnitude condition:
-
-$$
-\mathrm{Re}(z_n)^2 + \mathrm{Im}(z_n)^2 > 4
-$$
-
-This avoids unnecessary square-root calculations.
-
-Points that do not escape within the iteration limit are rendered black. This does not necessarily prove that they belong to the Mandelbrot set.
-
-### Smooth Escape-Time Coloring
-
-Integer iteration counts produce distinct color bands.
-
-To produce smoother transitions, FractalForge uses the normalized iteration count:
+The escape-time value is smoothed using:
 
 $$
 \nu=n+1-\log_2(\log_2|z_n|)
 $$
 
-Where:
+This fractional value is mapped onto a color gradient using RGB interpolation.
 
-- $n$ is the escape iteration count.
-- $|z_n|$ is the final magnitude.
-- $\nu$ is the smooth iteration value.
+Each `▀` character represents two vertically stacked fractal samples, using the terminal's foreground and background colors.
 
-The fractional value is mapped onto the color palette using linear RGB interpolation.
-
-Colors are used for visualization and are not intrinsic to the Mandelbrot set.
-
-### Terminal Rendering
-
-FractalForge uses the Unicode upper-half-block character `▀`.
-
-- Foreground color represents the upper sample.
-- Background color represents the lower sample.
-
-Each terminal cell therefore displays two vertically stacked fractal samples.
-
-## Tests
-
-Run:
+## Development
 
 ```bash
+go fmt ./...
 go test ./...
+go vet ./...
+go build .
 ```
 
 ## Roadmap
 
-- [x] Mandelbrot set rendering
-- [x] Smooth escape-time coloring
-- [x] RGB color interpolation
-- [x] Unicode half-block renderer
-- [ ] Interior detection and performance optimizations
-- [ ] Automatic terminal sizing
-- [ ] Zoom and pan controls
-- [ ] Customizable palettes
-- [ ] Julia sets
-- [ ] Kitty graphics-protocol rendering
+- [x] Interactive Mandelbrot explorer
+- [x] Smooth coloring and multiple palettes
+- [x] Location presets
+- [ ] Save and load custom locations
+- [ ] Additional fractal types
+- [ ] Parallel rendering
+- [ ] Image export
 
-## Status
+## License
 
-FractalForge is a work in progress, built as a Go programming and mathematical visualization project.
+No license has been specified yet.

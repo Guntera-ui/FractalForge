@@ -2,7 +2,7 @@ package main
 
 import "fmt"
 
-func RenderGrid(width, height int, cellAspect float64, view Viewport, maxIter int) {
+func RenderGrid(width, height int, cellAspect float64, view Viewport, maxIter int, palette Palette) {
 
 	minReal, maxReal := RealBounds(view.CenterReal, view.Width)
 
@@ -35,8 +35,8 @@ func RenderGrid(width, height int, cellAspect float64, view Viewport, maxIter in
 			topResult := MandelbrotDetailed(topC, maxIter)
 			bottomResult := MandelbrotDetailed(bottomC, maxIter)
 
-			topColor := ColorFromClassicPalette(topResult)
-			bottomColor := ColorFromClassicPalette(bottomResult)
+			topColor := ColorFromPalette(topResult, palette, maxIter)
+			bottomColor := ColorFromPalette(bottomResult, palette, maxIter)
 
 			PrintHalfBlock(topColor, bottomColor)
 		}
