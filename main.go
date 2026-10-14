@@ -39,7 +39,39 @@ func main() {
 		"Smooth iterations per color cycle",
 	)
 
+	renderer := flag.String(
+		"renderer",
+		"unicode",
+		"Rendering backend: unicode or kitty",
+	)
+
+	scale := flag.Int(
+		"scale",
+		8,
+		"Kitty raster resolution multiplier (1-8)",
+	)
+
 	flag.Parse()
+
+	if *renderer != "unicode" && *renderer != "kitty" {
+		fmt.Fprintln(
+			os.Stderr,
+			"renderer must be unicode or kitty",
+		)
+		os.Exit(1)
+	}
+
+	if *scale < 1 || *scale > 8 {
+		fmt.Fprintln(
+			os.Stderr,
+			"scale must be between 1 and 8",
+		)
+		os.Exit(1)
+	}
+
+	graphicsRenderer = *renderer
+	graphicsScale = *scale
+	graphicsInteractive = *interactive
 
 	if *listPresets {
 		PrintPresets()
@@ -150,14 +182,27 @@ func main() {
 	}
 
 	if *interactive {
-		err := RunInteractive(
-			view,
-			*canvasWidth,
-			*canvasHeight,
-			*cellAspect,
-			*maxIter,
-			palette,
-		)
+		var err error
+
+		if graphicsRenderer == "kitty" {
+			err = RunSmartKitty(
+				view,
+				*canvasWidth,
+				*canvasHeight,
+				*cellAspect,
+				*maxIter,
+				palette,
+			)
+		} else {
+			err = RunInteractive(
+				view,
+				*canvasWidth,
+				*canvasHeight,
+				*cellAspect,
+				*maxIter,
+				palette,
+			)
+		}
 
 		if err != nil {
 			fmt.Fprintln(os.Stderr, err)

@@ -1,8 +1,24 @@
 package main
 
 import "fmt"
+import "os"
 
 func RenderGrid(width, height int, cellAspect float64, view Viewport, maxIter int, palette Palette) {
+
+	if graphicsRenderer == "kitty" {
+		if err := RenderKitty(
+			width,
+			height,
+			cellAspect,
+			view,
+			maxIter,
+			palette,
+		); err != nil {
+			fmt.Fprintln(os.Stderr, "Kitty renderer:", err)
+		}
+
+		return
+	}
 
 	minReal, maxReal := RealBounds(view.CenterReal, view.Width)
 
