@@ -136,26 +136,3 @@ $$
 This fractional value is mapped onto a color gradient using RGB interpolation.
 
 Each `▀` character represents two vertically stacked fractal samples, using the terminal's foreground and background colors.
-
-## Development
-
-```bash
-go fmt ./...
-go test ./...
-go vet ./...
-go build .
-```
-
-## Roadmap
-
-- [x] Interactive Mandelbrot explorer
-- [x] Smooth coloring and multiple palettes
-- [x] Location presets
-- [ ] Save and load custom locations
-- [ ] Additional fractal types
-- [ ] Parallel rendering
-- [ ] Image export
-
-## License
-
-No license has been specified yet.
